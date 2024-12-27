@@ -27,8 +27,14 @@
 <div class="price-container mb-4" data-store="product-price-{{ product.id }}">
     <div class="mb-2">
         <span class="d-inline-block">
+		
         	<div class="js-price-display h1" id="price_display" {% if not product.display_price %}style="display:none;"{% endif %} data-product-price="{{ product.price }}">{% if product.display_price %}{{ product.price | money }}{% endif %}</div>
-        </span>
+ {# Preço com desconto no Pix - Corrigido para exibir apenas duas casas decimais #}
+            <div class="pix-price" style="margin-top: 5px; font-size: 18px; color: #333;">
+                ou <strong id="precopix"></strong> no Pix
+            </div>
+       
+	   </span>
         <span class="d-inline-block">
            <div id="compare_price_display" class="js-compare-price-display price-compare h3" {% if not product.compare_at_price or not product.display_price %}style="display:none;"{% else %} style="display:block;"{% endif %}>{% if product.compare_at_price and product.display_price %}{{ product.compare_at_price | money }}{% endif %}</div>
         </span>
@@ -39,6 +45,27 @@
         </div>
     {% endif %}
 </div>
+{# Script para calcular o desconto e corrigir o formato #}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Obtém o preço original diretamente do elemento ou atributo
+        let precoOriginal = parseFloat(document.getElementById('price_display').getAttribute('data-product-price'));
+
+        // Corrige valores que podem estar em centavos (dividindo por 100 se necessário)
+        if (precoOriginal > 1000) {
+            precoOriginal = precoOriginal / 100; // Corrige para reais
+        }
+
+        // Calcula o preço com desconto
+        const precoPix = (precoOriginal * 0.95).toFixed(2); // Aplicando 5% de desconto e limitando a duas casas decimais
+
+        // Atualiza o texto com o preço formatado corretamente
+        document.getElementById('precopix').textContent = parseFloat(precoPix).toLocaleString('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        });
+    });
+</script>
 
 {# Promotional text #}
 
