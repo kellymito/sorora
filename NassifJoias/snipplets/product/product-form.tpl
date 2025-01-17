@@ -3,7 +3,6 @@
 
 {% include 'snipplets/labels.tpl' with {'product_detail': true} %}
 
-
 {# Product name and breadcrumbs #}
 
 {% if home_main_product %}
@@ -27,16 +26,14 @@
 <div class="price-container mb-4" data-store="product-price-{{ product.id }}">
     <div class="mb-2">
         <span class="d-inline-block">
-		
-        	<div class="js-price-display h1" id="price_display" {% if not product.display_price %}style="display:none;"{% endif %} data-product-price="{{ product.price }}">{% if product.display_price %}{{ product.price | money }}{% endif %}</div>
- {# Preço com desconto no Pix - Corrigido para exibir apenas duas casas decimais #}
+            <div class="js-price-display h1" id="price_display" {% if not product.display_price %}style="display:none;"{% endif %} data-product-price="{{ product.price }}">{% if product.display_price %}{{ product.price | money }}{% endif %}</div>
+            {# Preço com desconto no Pix - Corrigido para exibir apenas duas casas decimais #}
             <div class="pix-price" style="margin-top: 5px; font-size: 18px; color: #333;">
                 ou <strong id="precopix"></strong> no Pix
             </div>
-       
-	   </span>
+        </span>
         <span class="d-inline-block">
-           <div id="compare_price_display" class="js-compare-price-display price-compare h3" {% if not product.compare_at_price or not product.display_price %}style="display:none;"{% else %} style="display:block;"{% endif %}>{% if product.compare_at_price and product.display_price %}{{ product.compare_at_price | money }}{% endif %}</div>
+            <div id="compare_price_display" class="js-compare-price-display price-compare h3" {% if not product.compare_at_price or not product.display_price %}style="display:none;"{% else %} style="display:block;"{% endif %}>{% if product.compare_at_price and product.display_price %}{{ product.compare_at_price | money }}{% endif %}</div>
         </span>
     </div>
     {% if settings.product_detail_installments %}
@@ -45,25 +42,48 @@
         </div>
     {% endif %}
 </div>
+
 {# Script para calcular o desconto e corrigir o formato #}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Obtém o preço original diretamente do elemento ou atributo
-        let precoOriginal = parseFloat(document.getElementById('price_display').getAttribute('data-product-price'));
+        // Função para calcular e atualizar o preço do Pix
+        function updatePixPrice() {
+            // Obtém o preço original diretamente do elemento ou atributo
+            let precoOriginal = parseFloat(document.getElementById('price_display').getAttribute('data-product-price'));
 
-        // Corrige valores que podem estar em centavos (dividindo por 100 se necessário)
-        if (precoOriginal > 1000) {
-            precoOriginal = precoOriginal / 100; // Corrige para reais
+            // Corrige valores que podem estar em centavos (dividindo por 100 se necessário)
+            if (precoOriginal > 1000) {
+                precoOriginal = precoOriginal / 100; // Corrige para reais
+            }
+
+            // Calcula o preço com desconto
+            const precoPix = (precoOriginal * 0.95).toFixed(2); // Aplicando 5% de desconto e limitando a duas casas decimais
+
+            // Atualiza o texto com o preço formatado corretamente
+            document.getElementById('precopix').textContent = parseFloat(precoPix).toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            });
         }
 
-        // Calcula o preço com desconto
-        const precoPix = (precoOriginal * 0.95).toFixed(2); // Aplicando 5% de desconto e limitando a duas casas decimais
+        // Atualiza o preço do Pix quando a página é carregada
+        updatePixPrice();
 
-        // Atualiza o texto com o preço formatado corretamente
-        document.getElementById('precopix').textContent = parseFloat(precoPix).toLocaleString('pt-BR', {
-            style: 'currency',
-            currency: 'BRL'
-        });
+        // Observa mudanças no preço do produto (por exemplo, ao selecionar uma variação)
+        const priceDisplay = document.getElementById('price_display');
+        if (priceDisplay) {
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'data-product-price') {
+                        updatePixPrice();
+                    }
+                });
+            });
+
+            observer.observe(priceDisplay, {
+                attributes: true // Observa mudanças nos atributos
+            });
+        }
     });
 </script>
 
@@ -82,7 +102,7 @@
             <p class="font-small">{{ "Válido para" | translate }} {{ "este producto y todos los de la categoría" | translate }}:
             {% for scope_value in product.promotional_offer.scope_value_info %}
                {{ scope_value.name }}{% if not loop.last %}, {% else %}.{% endif %}
-            {% endfor %}</br>{{ "Podés combinar esta promoción con otros productos de la misma categoría." | translate }}</p>
+            {% endfor %}</br>{{ "Podés combinar esta promoción com outros produtos de la misma categoría." | translate }}</p>
         {% elseif product.promotional_offer.scope_type == 'all'  %}
             <p class="font-small">{{ "Vas a poder aprovechar esta promoción en cualquier producto de la tienda." | translate }}</p>
         {% endif %}
@@ -91,9 +111,9 @@
 
 {# Product form, includes: Variants, CTA and Shipping calculator #}
 
- <form id="product_form" class="js-product-form" method="post" action="{{ store.cart_url }}" data-store="product-form-{{ product.id }}">
-	<input type="hidden" name="add_to_cart" value="{{product.id}}" />
- 	{% if template == "product" %}
+<form id="product_form" class="js-product-form" method="post" action="{{ store.cart_url }}" data-store="product-form-{{ product.id }}">
+    <input type="hidden" name="add_to_cart" value="{{product.id}}" />
+    {% if template == "product" %}
         {% set show_size_guide = true %}
     {% endif %}
     {% if product.variations %}
@@ -183,7 +203,7 @@
                                     {% if not hasDiscount and not settings.product_detail_installments %}
                                         {{ "Ver medios de pago" | translate }}
                                     {% else %}
-                                        {{ "Ver más detalles" | translate }}
+                                        {{ "Ver mais detalhes" | translate }}
                                     {% endif %}
                                 </span>
                             </a>
@@ -215,7 +235,7 @@
         </div>
     {% endif %}
 
- </form>
+</form>
 
 {# Product payments details #}
 
